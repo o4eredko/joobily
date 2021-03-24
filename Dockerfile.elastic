@@ -1,0 +1,2 @@
+FROM elasticsearch:7.9.0
+COPY ru_RU /usr/share/elasticsearch/config/hunspell/ru_RU

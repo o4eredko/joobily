@@ -1,0 +1,49 @@
+version: "3.7"
+
+networks:
+  joobily:
+    name: joobily
+    driver: bridge
+
+services:
+  joobily_app:
+    container_name: joobily_app
+    build: .
+    env_file:
+      - .env
+    environment:
+      - ELASTIC_HOST=joobily_elastic
+    restart: unless-stopped
+    networks:
+      - joobily
+    ports:
+      - 8000:8000
+    depends_on:
+      - joobily_elastic
+
+  joobily_elastic:
+    container_name: joobily_elastic
+    build:
+      dockerfile: Dockerfile.elastic
+      context: .
+    command: ["elasticsearch", "-Elogger.level=WARN"]
+    networks:
+      - joobily
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ./.data/elastic:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+
